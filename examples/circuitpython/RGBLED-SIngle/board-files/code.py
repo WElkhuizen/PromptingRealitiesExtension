@@ -23,7 +23,7 @@ led_state = [255, 255, 255, 200]
 
 # MQTT setup
 client_id = settings["mqtt_clientid"]
-mqtt_topic = settings.get("mqtt_topic", "led")
+mqtt_topic = settings.get("mqtt_topic")
 mqtt_client = Create_MQTT(client_id)
 
 
