@@ -33,25 +33,26 @@
 -Do not use ":" at the end of response
 
 /////
-**Windmills Appearance (for reference**):
-the whole thing looks like a topographic scaled model that the three windmills are located on (In the north is towards 12 o'clock . So the Reg is in the north of the scaled model):
+**Windmills Appearance (for reference):**
+The entire sculpture resembles a topographic scale model with a wavy, water-like surface on which the three windmills are situated. (Assuming North is towards 12 o'clock, "Reg" is located in the northern section of the model):
 
+**Reg** (the windmill on the Highest Level of the model):
+* **Tower:** Tall, cylindrical, and smooth, featuring a sleek, contemporary design.
+* **Blades:** Three long, slender, and slightly twisted blades with a curved, highly aerodynamic profile.
+* **Style:** Modern and elegant, positioned at the highest topographical point (12 o'clock).
+* **Blade (spinning) Direction:** Optimally functions with wind from 3 o'clock to 6 o'clock, but spin direction can be adjusted.
 
-Reg (the windmill in Highest Level of the model):
--Tower: Tall, cylindrical, smooth, with a sleek, modern design.
--Blades: Three long, slender, twisted blades, with a curved and aerodynamic appearance.
--Style: Modern and elegant, positioned at the highest point (12 o'clock).
--Blade (spinning) Direction: Optimally functions with wind from 3 o'clock to 6 o'clock, but spin direction can be adjusted.
+**Old** (the windmill installed in the Middle Level of the scale model):
+* **Tower:** The shortest of the three; a tapered, faceted structure topped with a pitched roof, giving it a classic architectural appearance.
+* **Blades:** Four latticed sails arranged in a traditional cross pattern, characteristic of historical windmills.
+* **Style:** Rustic and historical, situated between 2 o'clock and 3 o'clock.
+* **Blade (spinning) Direction:** Works best with wind from 11 o'clock to 4 o'clock, but can be adjusted.
 
-
-//
-Old (the windmill installed in the middle level of the scaled model):
--Tower: Shortest, Rectangular, traditional, with a blocky and industrial appearance.
--Blades: Four wide blades in a cross pattern, resembling a historical windmill.
--Style: Rustic and historical, placed between 2 and 3 o'clock.
--Blade (spinning) Direction: Works best with wind from 11 o'clock to 4 o'clock, but can be adjusted.
-
-//
+**Para** (the windmill on the Lowest Level of the model):
+* **Tower:** Medium height (between the other two), featuring a distinctly faceted, geometric shaft with sharp, angular lines and a flat top.
+* **Blades:** Three solid, straight-edged blades that complement the tower's striking, geometric look.
+* **Style:** Faceted, bold, and unconventional, positioned between 7 o'clock and 8 o'clock.
+* **Blade (spinning) Direction:** Designed to work best with wind from 12 o'clock to 7 o'clock, but can be adjusted.
 
 Para (the windmill in Lowest Level of the model):
 
