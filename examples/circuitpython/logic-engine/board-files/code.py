@@ -1,15 +1,17 @@
-# Logic Engine — NeoPixel LED + Touch Sensor
+# Logic Engine — NeoPixel LED + Touch Sensor + Light Sensor
 # Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
 #   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
 #   Touch sensor          →  D2 header on Bitsy Expander
+#   Light sensor          →  A1 header on Bitsy Expander
 
 import gc
 import time
 import json
 import board
 import digitalio
+import analogio
 import neopixel
 from MQTT import Create_MQTT
 from settings import settings
@@ -26,14 +28,17 @@ touch_pin = digitalio.DigitalInOut(board.D2)
 touch_pin.direction = digitalio.Direction.INPUT
 touch_pin.pull = digitalio.Pull.DOWN
 
+light_pin = analogio.AnalogIn(board.A1)
+
 gc.collect()
 
 # ── State ─────────────────────────────────────────────────────────────
 
-inputs = {"touch": 0}
+inputs = {"touch": 0, "light": 0}
 rules = []
 default_actions = []
 last_led = None
+last_inputs_print = 0
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -84,7 +89,7 @@ def rule_matches(rule):
 
 def on_message(client, topic, message):
     global rules, default_actions
-    print("Message received:", message[:80])
+    print("Message received:", message[:200])
     try:
         data = json.loads(message)
         gc.collect()
@@ -92,6 +97,8 @@ def on_message(client, topic, message):
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
         default_actions = data.get("default_actions", [])
         print("Program loaded:", len(rules), "rules,", len(default_actions), "defaults")
+        for i, r in enumerate(rules):
+            print("  rule", i, r.get("label"), r.get("checks"))
         apply_actions(default_actions)
         gc.collect()
     except Exception as e:
@@ -115,6 +122,13 @@ while True:
         mqtt_client.loop(timeout=0.2)
 
         inputs["touch"] = 1 if touch_pin.value else 0
+        inputs["light"] = light_pin.value
+
+        # Print sensor values every 2 seconds for calibration
+        now = time.monotonic()
+        if now - last_inputs_print >= 2.0:
+            print("touch:", inputs["touch"], "| light:", inputs["light"])
+            last_inputs_print = now
 
         matched = False
         for rule in rules:
