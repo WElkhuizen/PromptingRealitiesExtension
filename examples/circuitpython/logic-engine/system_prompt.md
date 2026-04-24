@@ -56,6 +56,8 @@ Run continuously when no rule is active. Each mapping scales one input range to 
 
 Each mapping requires: `label`, `input`, `in_min`, `in_max`, `output` (always `"led"`), `output_channel`, `out_min`, `out_max`.
 
+To **invert** a mapping (more input → less output), swap `out_min` and `out_max`: set `out_min: 255, out_max: 0`.
+
 When using mappings, set the LED base colour in `default_actions` — the mapping continuously overrides one channel of that colour. For example, set `default_actions` to white `[255, 255, 255, 0]` and map the sensor to `output_channel: 3` (brightness).
 
 ### `default_actions`
