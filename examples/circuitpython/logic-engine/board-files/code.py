@@ -165,8 +165,9 @@ while True:
         inputs["touch"] = 1 if touch_pin.value else 0
         inputs["light"] = light_pin.value
 
-        if inputs["light"] < light_min: light_min = inputs["light"]
-        if inputs["light"] > light_max: light_max = inputs["light"]
+        if calibrating:
+            if inputs["light"] < light_min: light_min = inputs["light"]
+            if inputs["light"] > light_max: light_max = inputs["light"]
 
         now = time.monotonic()
         if now - last_inputs_print >= 2.0:
