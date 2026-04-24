@@ -9,7 +9,7 @@
       "type": "object",
       "required": ["command", "rules", "mappings", "default_actions"],
       "properties": {
-        "command": { "type": "string" },
+        "command": { "type": "string", "enum": ["", "calibrate_light", "calibrate_temperature"] },
         "rules": {
           "type": "array",
           "items": {

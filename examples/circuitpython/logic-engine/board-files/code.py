@@ -1,10 +1,11 @@
-# Logic Engine — NeoPixel LED + Touch Sensor + Light Sensor
+# Logic Engine — NeoPixel LED + Touch Sensor + Light Sensor + Temperature Sensor
 # Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
-#   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
-#   Touch sensor          →  D2 header on Bitsy Expander
-#   Light sensor          →  A2 header on Bitsy Expander
+#   ChaiNEO NeoPixel LED    →  D7 header on Bitsy Expander
+#   Touch sensor            →  D2 header on Bitsy Expander
+#   Light sensor            →  A2 header on Bitsy Expander
+#   Temperature sensor      →  A4 header on Bitsy Expander
 
 import gc
 import time
@@ -29,23 +30,29 @@ touch_pin.direction = digitalio.Direction.INPUT
 touch_pin.pull = digitalio.Pull.DOWN
 
 light_pin = analogio.AnalogIn(board.A2)
+temp_pin  = analogio.AnalogIn(board.A4)
 
 gc.collect()
 
 # ── State ─────────────────────────────────────────────────────────────
 
-inputs = {"touch": 0, "light": 0}
+inputs = {"touch": 0, "light": 0, "temperature": 0}
 rules = []
 mappings = []
 default_actions = []
-led_state = [0, 0, 0, 0]   # R, G, B, brightness — updated by mappings
+led_state = [0, 0, 0, 0]
 last_led = None
 last_inputs_print = 0
-light_min = 65535
-light_max = 0
-calibrating = False
-calibration_end = 0
+
+# Calibration — tracks min/max for whichever analog input is being calibrated
+cal_input = None
+cal_min = 65535
+cal_max = 0
+cal_end = 0
 CALIBRATION_DURATION = 25.0
+
+# Analog inputs that support calibration
+ANALOG_INPUTS = ("light", "temperature")
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -110,17 +117,22 @@ def rule_matches(rule):
 
 def on_message(client, topic, message):
     global rules, mappings, default_actions, led_state
-    global calibrating, calibration_end, light_min, light_max
+    global cal_input, cal_min, cal_max, cal_end
     print("Message received:", message[:200])
     try:
         data = json.loads(message)
         gc.collect()
-        if data.get("command") == "calibrate":
-            light_min = 65535
-            light_max = 0
-            calibrating = True
-            calibration_end = time.monotonic() + CALIBRATION_DURATION
-            print("Calibration started —", CALIBRATION_DURATION, "seconds")
+        cmd = data.get("command", "")
+        if cmd.startswith("calibrate_"):
+            name = cmd[len("calibrate_"):]
+            if name in ANALOG_INPUTS:
+                cal_input = name
+                cal_min = 65535
+                cal_max = 0
+                cal_end = time.monotonic() + CALIBRATION_DURATION
+                print("Calibrating:", name, "for", CALIBRATION_DURATION, "s")
+            else:
+                print("Unknown calibration input:", name)
             return
         raw = data.get("rules", [])
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
@@ -162,23 +174,29 @@ while True:
     try:
         mqtt_client.loop(timeout=0.2)
 
-        inputs["touch"] = 1 if touch_pin.value else 0
-        inputs["light"] = light_pin.value
+        inputs["touch"]       = 1 if touch_pin.value else 0
+        inputs["light"]       = light_pin.value
+        inputs["temperature"] = temp_pin.value
 
-        if calibrating:
-            if inputs["light"] < light_min: light_min = inputs["light"]
-            if inputs["light"] > light_max: light_max = inputs["light"]
+        if cal_input:
+            val = inputs[cal_input]
+            if val < cal_min: cal_min = val
+            if val > cal_max: cal_max = val
 
         now = time.monotonic()
         if now - last_inputs_print >= 2.0:
-            print("touch:", inputs["touch"], "| light:", inputs["light"], "| range:", light_min, "-", light_max)
+            print("touch:", inputs["touch"],
+                  "| light:", inputs["light"],
+                  "| temp:", inputs["temperature"],
+                  "| cal:", cal_input)
             last_inputs_print = now
 
-        if calibrating and now >= calibration_end:
-            calibrating = False
-            msg = '{"light_min":' + str(light_min) + ',"light_max":' + str(light_max) + '}'
+        if cal_input and now >= cal_end:
+            msg = ('{"' + cal_input + '_min":' + str(cal_min) +
+                   ',"' + cal_input + '_max":' + str(cal_max) + '}')
             mqtt_client.publish(sensor_topic, msg)
             print("Calibration done:", msg)
+            cal_input = None
 
         matched = False
         for rule in rules:
