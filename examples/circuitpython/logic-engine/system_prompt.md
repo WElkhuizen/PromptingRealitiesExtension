@@ -14,10 +14,12 @@ A time-of-flight sensor that measures how far away the nearest object is.
 
 **OUTPUT — "led"**
 A single NeoPixel (RGB) LED.
-- Values: `[R, G, B, brightness]`
+- Output name: always exactly `"led"` — never `"led_color"` or anything else
+- Values: always exactly 4 numbers `[R, G, B, brightness]`
 - R, G, B: colour channels, each 0–255
 - brightness: overall intensity, 0–255 (0 = off, 255 = full brightness)
 - To turn off: `[0, 0, 0, 0]`
+- Example blue at full brightness: `[0, 0, 255, 255]`
 
 ---
 

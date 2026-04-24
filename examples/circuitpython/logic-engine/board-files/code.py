@@ -79,19 +79,17 @@ def rule_matches(rule):
 
 def on_message(client, topic, message):
     global rules, default_actions
-    print("Message received")
+    print("Message received:", message[:80])
     try:
         data = json.loads(message)
         gc.collect()
-        prog = data.get("MQTT_value")
-        if prog:
-            raw = prog.get("rules", [])
-            rules = sorted(raw, key=lambda r: r.get("priority", 99))
-            default_actions = prog.get("default_actions", [])
-            print("Program loaded:", len(rules), "rules")
-            apply_actions(default_actions)
-        else:
-            print("Raw message:", message[:80])
+        # Webapp publishes MQTT_value contents directly, so rules/default_actions
+        # are at the top level of the received message
+        raw = data.get("rules", [])
+        rules = sorted(raw, key=lambda r: r.get("priority", 99))
+        default_actions = data.get("default_actions", [])
+        print("Program loaded:", len(rules), "rules,", len(default_actions), "defaults")
+        apply_actions(default_actions)
         gc.collect()
     except Exception as e:
         print("Parse error:", e)
