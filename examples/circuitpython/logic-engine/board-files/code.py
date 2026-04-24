@@ -1,25 +1,25 @@
-# Logic Engine — distance sensor + NeoPixel LED
+# Logic Engine — NeoPixel LED (distance sensor disabled, see TODO below)
 # Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
-#   VL53L0X distance sensor  →  any I2C header on Bitsy Expander
-#   ChaiNEO NeoPixel LED      →  D7 header on Bitsy Expander
+#   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
+#
+# TODO: adafruit_vl53l0x + adafruit_minimqtt together exceed the ItsyBitsy's
+#       192KB RAM. Distance sensor is disabled until we resolve this (e.g. by
+#       using .mpy compiled libraries or lazy-importing the sensor after MQTT).
+#       For now: distance is fixed at 500mm so rules can still be tested.
 
 import gc
 import time
 import json
 import board
 import neopixel
-import adafruit_vl53l0x
 from MQTT import Create_MQTT
 from settings import settings
 
 gc.collect()
 
 # ── Hardware ──────────────────────────────────────────────────────────
-
-i2c = board.I2C()
-tof = adafruit_vl53l0x.VL53L0X(i2c)
 
 led = neopixel.NeoPixel(board.D7, 1, auto_write=False, pixel_order=neopixel.GRBW)
 led.fill((0, 0, 0, 0))
@@ -29,12 +29,10 @@ gc.collect()
 
 # ── State ─────────────────────────────────────────────────────────────
 
-distance = 500          # current sensor reading in mm
-rules = []              # sorted by priority when program loads
-default_actions = []    # applied when no rule matches
-
-last_distance = -1      # for change-based distance printing
-last_led = None         # for change-based LED printing
+distance = 500          # fixed placeholder — ToF sensor disabled for now
+rules = []
+default_actions = []
+last_led = None
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -74,10 +72,10 @@ def rule_matches(rule):
     for c in rule["checks"]:
         result = eval_check(c["op"], c["value"])
         if logic == "AND" and not result:
-            return False        # short-circuit: one false kills AND
+            return False
         if logic == "OR" and result:
-            return True         # short-circuit: one true wins OR
-    return logic == "AND"       # AND: all passed  /  OR: none passed
+            return True
+    return logic == "AND"
 
 # ── MQTT message handler ──────────────────────────────────────────────
 
@@ -92,6 +90,7 @@ def on_message(client, topic, message):
             rules = sorted(raw, key=lambda r: r.get("priority", 99))
             default_actions = prog.get("default_actions", [])
             print("Program loaded:", len(rules), "rules")
+            apply_actions(default_actions)
         gc.collect()
     except Exception as e:
         print("Parse error:", e)
@@ -111,17 +110,7 @@ gc.collect()
 
 while True:
     try:
-        mqtt_client.loop(timeout=0.05)
-
-        try:
-            d = tof.range
-            if 50 <= d <= 950:
-                distance = d
-                if abs(distance - last_distance) >= 10:
-                    print("Distance:", distance, "mm")
-                    last_distance = distance
-        except Exception:
-            pass
+        mqtt_client.loop(timeout=0.2)
 
         matched = False
         for rule in rules:
