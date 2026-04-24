@@ -33,9 +33,20 @@ distance = 500          # current sensor reading in mm
 rules = []              # sorted by priority when program loads
 default_actions = []    # applied when no rule matches
 
+last_distance = -1      # for change-based distance printing
+last_led = None         # for change-based LED printing
+
 # ── LED output ────────────────────────────────────────────────────────
 
 def set_led(r, g, b, br):
+    global last_led
+    vals = (r, g, b, br)
+    if vals != last_led:
+        if r > 0 or g > 0 or b > 0 or br > 0:
+            print("LED:", r, g, b, "brightness:", br)
+        else:
+            print("LED: off")
+        last_led = vals
     led.brightness = max(0.0, min(1.0, br / 255.0))
     led.fill((max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b)), 0))
     led.show()
@@ -106,6 +117,9 @@ while True:
             d = tof.range
             if 50 <= d <= 950:
                 distance = d
+                if abs(distance - last_distance) >= 10:
+                    print("Distance:", distance, "mm")
+                    last_distance = distance
         except Exception:
             pass
 
