@@ -156,9 +156,10 @@ Set the LED base colour in `default_actions`: `[255, 255, 255, 0]` (white, brigh
 Before writing any mapping or rule that uses `"light"` thresholds, you need the observed sensor range. If `light_min` and `light_max` values have not yet appeared in this conversation:
 
 1. Do **not** generate a program yet
-2. Ask the user to calibrate: cover the sensor completely (darkest), then expose it to the brightest available light
-3. Tell them the device will automatically send the measured range within a few seconds
-4. Once `light_min` and `light_max` appear, use them directly as `in_min`/`in_max` in mappings and as thresholds in rules
+2. Send a calibration command by setting `"command": "calibrate"` in `MQTT_value` (leave `rules`, `mappings`, `default_actions` as empty arrays)
+3. Tell the user: *"You have 15 seconds — cover the sensor completely, then expose it to the brightest light available"*
+4. The device will publish one result message when the 15 seconds are up
+5. Once `light_min` and `light_max` appear in the conversation, use them directly as `in_min`/`in_max` in mappings and as thresholds in rules
 
 ---
 

@@ -41,10 +41,11 @@ default_actions = []
 led_state = [0, 0, 0, 0]   # R, G, B, brightness — updated by mappings
 last_led = None
 last_inputs_print = 0
-last_sensor_publish = 0
-SENSOR_PUBLISH_INTERVAL = 5.0
 light_min = 65535
 light_max = 0
+calibrating = False
+calibration_end = 0
+CALIBRATION_DURATION = 15.0
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -109,15 +110,22 @@ def rule_matches(rule):
 
 def on_message(client, topic, message):
     global rules, mappings, default_actions, led_state
+    global calibrating, calibration_end, light_min, light_max
     print("Message received:", message[:200])
     try:
         data = json.loads(message)
         gc.collect()
+        if data.get("command") == "calibrate":
+            light_min = 65535
+            light_max = 0
+            calibrating = True
+            calibration_end = time.monotonic() + CALIBRATION_DURATION
+            print("Calibration started —", CALIBRATION_DURATION, "seconds")
+            return
         raw = data.get("rules", [])
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
         mappings = data.get("mappings", [])
         default_actions = data.get("default_actions", [])
-        # Seed led_state from default_actions so mappings have a base colour to work with
         led_state = [0, 0, 0, 0]
         for a in default_actions:
             if a["output"] in ("led", "led_color"):
@@ -165,11 +173,11 @@ while True:
             print("touch:", inputs["touch"], "| light:", inputs["light"], "| range:", light_min, "-", light_max)
             last_inputs_print = now
 
-        # Publish observed light range so LLM can calibrate mappings automatically
-        if now - last_sensor_publish >= SENSOR_PUBLISH_INTERVAL:
+        if calibrating and now >= calibration_end:
+            calibrating = False
             msg = '{"light_min":' + str(light_min) + ',"light_max":' + str(light_max) + '}'
             mqtt_client.publish(sensor_topic, msg)
-            last_sensor_publish = now
+            print("Calibration done:", msg)
 
         matched = False
         for rule in rules:

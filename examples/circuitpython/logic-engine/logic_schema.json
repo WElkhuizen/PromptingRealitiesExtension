@@ -7,8 +7,9 @@
     },
     "MQTT_value": {
       "type": "object",
-      "required": ["rules", "mappings", "default_actions"],
+      "required": ["command", "rules", "mappings", "default_actions"],
       "properties": {
+        "command": { "type": "string" },
         "rules": {
           "type": "array",
           "items": {
