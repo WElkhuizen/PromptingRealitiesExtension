@@ -151,6 +151,17 @@ Set the LED base colour in `default_actions`: `[255, 255, 255, 0]` (white, brigh
 
 ---
 
+## Calibration
+
+Before writing any mapping or rule that uses `"light"` thresholds, you need the observed sensor range. If `light_min` and `light_max` values have not yet appeared in this conversation:
+
+1. Do **not** generate a program yet
+2. Ask the user to calibrate: cover the sensor completely (darkest), then expose it to the brightest available light
+3. Tell them the device will automatically send the measured range within a few seconds
+4. Once `light_min` and `light_max` appear, use them directly as `in_min`/`in_max` in mappings and as thresholds in rules
+
+---
+
 ## Rules
 
 - `checks` must never be empty
