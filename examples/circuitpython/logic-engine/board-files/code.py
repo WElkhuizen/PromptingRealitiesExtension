@@ -1,16 +1,15 @@
-# Logic Engine — NeoPixel LED
+# Logic Engine — NeoPixel LED + Touch Sensor
 # Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
 #   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
-#
-# Note: ToF distance sensor disabled — adafruit_vl53l0x + adafruit_minimqtt
-#       exceed 192KB RAM together. Use .mpy compiled lib to re-enable.
+#   Touch sensor          →  D2 header on Bitsy Expander
 
 import gc
 import time
 import json
 import board
+import digitalio
 import neopixel
 from MQTT import Create_MQTT
 from settings import settings
@@ -23,11 +22,15 @@ led = neopixel.NeoPixel(board.D7, 1, auto_write=False, pixel_order=neopixel.GRB)
 led.fill((0, 0, 0))
 led.show()
 
+touch_pin = digitalio.DigitalInOut(board.D2)
+touch_pin.direction = digitalio.Direction.INPUT
+touch_pin.pull = digitalio.Pull.DOWN
+
 gc.collect()
 
 # ── State ─────────────────────────────────────────────────────────────
 
-distance = 500
+inputs = {"touch": 0}
 rules = []
 default_actions = []
 last_led = None
@@ -49,26 +52,28 @@ def set_led(r, g, b, br):
 
 def apply_actions(actions):
     for a in actions:
-        if a["output"] == "led":
+        if a["output"] in ("led", "led_color"):
             v = a["values"]
-            if len(v) >= 4:
-                set_led(int(v[0]), int(v[1]), int(v[2]), int(v[3]))
+            br = int(v[3]) if len(v) >= 4 else 255
+            if len(v) >= 3:
+                set_led(int(v[0]), int(v[1]), int(v[2]), br)
 
 # ── Condition evaluation ──────────────────────────────────────────────
 
-def eval_check(op, thr):
-    if op == "<":  return distance < thr
-    if op == ">":  return distance > thr
-    if op == "<=": return distance <= thr
-    if op == ">=": return distance >= thr
-    if op == "==": return distance == thr
-    if op == "!=": return distance != thr
+def eval_check(input_name, op, thr):
+    val = inputs.get(input_name, 0)
+    if op == "<":  return val < thr
+    if op == ">":  return val > thr
+    if op == "<=": return val <= thr
+    if op == ">=": return val >= thr
+    if op == "==": return val == thr
+    if op == "!=": return val != thr
     return False
 
 def rule_matches(rule):
     logic = rule["condition_logic"]
     for c in rule["checks"]:
-        result = eval_check(c["op"], c["value"])
+        result = eval_check(c["input"], c["op"], c["value"])
         if logic == "AND" and not result:
             return False
         if logic == "OR" and result:
@@ -83,8 +88,6 @@ def on_message(client, topic, message):
     try:
         data = json.loads(message)
         gc.collect()
-        # Webapp publishes MQTT_value contents directly, so rules/default_actions
-        # are at the top level of the received message
         raw = data.get("rules", [])
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
         default_actions = data.get("default_actions", [])
@@ -110,6 +113,8 @@ gc.collect()
 while True:
     try:
         mqtt_client.loop(timeout=0.2)
+
+        inputs["touch"] = 1 if touch_pin.value else 0
 
         matched = False
         for rule in rules:
