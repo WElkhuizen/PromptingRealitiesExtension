@@ -1,13 +1,11 @@
-# Logic Engine — NeoPixel LED (distance sensor disabled, see TODO below)
+# Logic Engine — NeoPixel LED
 # Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
 #   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
 #
-# TODO: adafruit_vl53l0x + adafruit_minimqtt together exceed the ItsyBitsy's
-#       192KB RAM. Distance sensor is disabled until we resolve this (e.g. by
-#       using .mpy compiled libraries or lazy-importing the sensor after MQTT).
-#       For now: distance is fixed at 500mm so rules can still be tested.
+# Note: ToF distance sensor disabled — adafruit_vl53l0x + adafruit_minimqtt
+#       exceed 192KB RAM together. Use .mpy compiled lib to re-enable.
 
 import gc
 import time
@@ -21,15 +19,15 @@ gc.collect()
 
 # ── Hardware ──────────────────────────────────────────────────────────
 
-led = neopixel.NeoPixel(board.D7, 1, auto_write=False, pixel_order=neopixel.GRBW)
-led.fill((0, 0, 0, 0))
+led = neopixel.NeoPixel(board.D7, 1, auto_write=False, pixel_order=neopixel.GRB)
+led.fill((0, 0, 0))
 led.show()
 
 gc.collect()
 
 # ── State ─────────────────────────────────────────────────────────────
 
-distance = 500          # fixed placeholder — ToF sensor disabled for now
+distance = 500
 rules = []
 default_actions = []
 last_led = None
@@ -46,7 +44,7 @@ def set_led(r, g, b, br):
             print("LED: off")
         last_led = vals
     led.brightness = max(0.0, min(1.0, br / 255.0))
-    led.fill((max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b)), 0))
+    led.fill((max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b))))
     led.show()
 
 def apply_actions(actions):
@@ -81,6 +79,7 @@ def rule_matches(rule):
 
 def on_message(client, topic, message):
     global rules, default_actions
+    print("Message received")
     try:
         data = json.loads(message)
         gc.collect()
@@ -91,6 +90,8 @@ def on_message(client, topic, message):
             default_actions = prog.get("default_actions", [])
             print("Program loaded:", len(rules), "rules")
             apply_actions(default_actions)
+        else:
+            print("Raw message:", message[:80])
         gc.collect()
     except Exception as e:
         print("Parse error:", e)
