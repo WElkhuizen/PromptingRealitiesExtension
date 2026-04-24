@@ -76,7 +76,7 @@ def apply_mappings():
         mapped = int(m["out_min"] + ratio * (m["out_max"] - m["out_min"]))
         if m["output"] == "led":
             ch = m.get("output_channel", 3)
-            led_state[ch] = mapped
+            led_state[ch] = 0 if mapped <= 8 else (255 if mapped >= 247 else mapped)
     set_led(led_state[0], led_state[1], led_state[2], led_state[3])
 
 # ── Condition evaluation ──────────────────────────────────────────────
