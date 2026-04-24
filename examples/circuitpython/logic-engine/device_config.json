@@ -1,6 +1,6 @@
 {
   "device_name": "Logic Engine — distance + LED",
-  "description": "Raspberry Pi Pico 2W with Pico Expander (Connected Interaction Kit). One input: ToF distance sensor. One output: NeoPixel LED.",
+  "description": "ItsyBitsy M4 with Bitsy Expander (Connected Interaction Kit). One input: ToF distance sensor. One output: NeoPixel LED.",
   "note": "This file documents the physical setup. It is the source from which system_prompt.md is derived. In a future version of the webapp, uploading this file could auto-generate the system prompt.",
 
   "inputs": {
@@ -8,7 +8,7 @@
       "type": "tof_sensor",
       "label": "Distance sensor",
       "component": "VL53L0X (Time-of-Flight)",
-      "port": "any I2C header on Pico Expander",
+      "port": "any I2C header on Bitsy Expander",
       "pin": "I2C (SDA/SCL)",
       "range": [50, 950],
       "unit": "mm",
@@ -25,8 +25,8 @@
       "type": "neopixel",
       "label": "RGB LED",
       "component": "ChaiNEO (NeoPixel RGBW)",
-      "port": "D7 on Pico Expander",
-      "pin": "GP7",
+      "port": "D7 on Bitsy Expander",
+      "pin": "D7",
       "format": "array [R, G, B, brightness]",
       "range": "each value 0–255",
       "notes": [

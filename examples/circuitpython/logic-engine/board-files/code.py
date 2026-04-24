@@ -1,9 +1,9 @@
 # Logic Engine — distance sensor + NeoPixel LED
-# Connected Interaction Kit: Raspberry Pi Pico 2W + Pico Expander
+# Connected Interaction Kit: ItsyBitsy M4 + Bitsy Expander
 #
 # Wiring:
-#   VL53L0X distance sensor  →  any I2C header on Pico Expander
-#   ChaiNEO NeoPixel LED      →  D7 header on Pico Expander
+#   VL53L0X distance sensor  →  any I2C header on Bitsy Expander
+#   ChaiNEO NeoPixel LED      →  D7 header on Bitsy Expander
 #
 # Receives a JSON "program" from the LLM via MQTT.
 # Evaluates rules, mappings and sequences against live sensor readings every ~50ms.
@@ -22,7 +22,7 @@ from settings import settings
 i2c = board.I2C()
 tof = adafruit_vl53l0x.VL53L0X(i2c)
 
-led = neopixel.NeoPixel(board.GP7, 1, auto_write=False, pixel_order=neopixel.GRBW)
+led = neopixel.NeoPixel(board.D7, 1, auto_write=False, pixel_order=neopixel.GRBW)
 led.fill((0, 0, 0, 0))
 led.show()
 
