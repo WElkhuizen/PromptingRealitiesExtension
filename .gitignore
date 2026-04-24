@@ -8,3 +8,4 @@ __pycache__/
 .vscode/
 core/P5-demo/config.js
 examples/RGBLED-assistant/p5-led-simulator/config.js
+**/board-files/settings.py
