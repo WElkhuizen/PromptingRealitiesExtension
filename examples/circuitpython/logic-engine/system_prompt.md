@@ -39,7 +39,7 @@ If the user asks for any behaviour involving the light sensor and `light_min`/`l
 
 1. Do **not** generate a logic program yet
 2. Send a calibration command: set `"command": "calibrate"` in `MQTT_value`, with `rules`, `mappings`, `default_actions` all as `[]`
-3. Set `answer` to exactly this user-facing message: *"To calibrate the light sensor, cover it completely with your hand and hold it for a few seconds, then uncover it and hold it under the brightest light you can find. You have 25 seconds. The sensor range will be sent automatically when the time is up."*
+3. Set `answer` to exactly this (the 20-word limit does not apply for calibration): *"To calibrate the light sensor, cover it completely with your hand and hold it for a few seconds, then uncover it and hold it under the brightest light you can find. You have 25 seconds. The sensor range will be sent automatically when the time is up."*
 4. The device will publish one message (`{"light_min": ..., "light_max": ...}`) when the 25 seconds are up
 5. Once those values appear in the conversation, use them directly as `in_min`/`in_max` in mappings and as thresholds in rules — then generate the program
 
