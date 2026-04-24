@@ -31,7 +31,7 @@ Each program you return **completely replaces** the previous one. You cannot rea
 
 ## Program structure
 
-Your program has four parts. All four must always be present (use `[]` for any you don't need).
+Your response must have two top-level fields: `answer` (the text shown to the user) and `MQTT_value` (the logic program sent to the device). Inside `MQTT_value` there are four parts — all four must always be present (use `[]` for any you don't need).
 
 ### 1. `default_actions`
 The baseline state — what the LED does when no rule is active. Always define this.

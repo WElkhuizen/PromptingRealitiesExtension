@@ -10,7 +10,7 @@
         "description": "Brief human-readable description of the behaviour you programmed (max 20 words)."
       },
 
-      "program": {
+      "MQTT_value": {
         "type": "object",
         "properties": {
 
@@ -145,7 +145,7 @@
       }
 
     },
-    "required": ["answer", "program"],
+    "required": ["answer", "MQTT_value"],
     "additionalProperties": false
   }
 }

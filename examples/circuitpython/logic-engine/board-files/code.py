@@ -177,13 +177,13 @@ def on_message(client, topic, message):
     global program, active_sequence
     try:
         data = json.loads(message)
-        prog = data.get("program")
+        prog = data.get("MQTT_value")
         if prog is not None:
             program = prog
             active_sequence = None   # cancel any running sequence
             print("New program loaded")
         else:
-            print("Received message without 'program' key")
+            print("Received message without 'MQTT_value' key")
     except Exception as e:
         print("Parse error:", e)
 
