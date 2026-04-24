@@ -1,0 +1,39 @@
+{
+  "device_name": "Logic Engine — distance + LED",
+  "description": "Raspberry Pi Pico 2W with Pico Expander (Connected Interaction Kit). One input: ToF distance sensor. One output: NeoPixel LED.",
+  "note": "This file documents the physical setup. It is the source from which system_prompt.md is derived. In a future version of the webapp, uploading this file could auto-generate the system prompt.",
+
+  "inputs": {
+    "distance": {
+      "type": "tof_sensor",
+      "label": "Distance sensor",
+      "component": "VL53L0X (Time-of-Flight)",
+      "port": "any I2C header on Pico Expander",
+      "pin": "I2C (SDA/SCL)",
+      "range": [50, 950],
+      "unit": "mm",
+      "notes": [
+        "Values below 50mm or above 950mm are unreliable and are filtered out in firmware.",
+        "Lower value = object closer to sensor.",
+        "A clear line of sight is needed; works best with flat surfaces perpendicular to the sensor."
+      ]
+    }
+  },
+
+  "outputs": {
+    "led": {
+      "type": "neopixel",
+      "label": "RGB LED",
+      "component": "ChaiNEO (NeoPixel RGBW)",
+      "port": "D7 on Pico Expander",
+      "pin": "GP7",
+      "format": "array [R, G, B, brightness]",
+      "range": "each value 0–255",
+      "notes": [
+        "R, G, B are colour channels. brightness controls overall intensity (0 = off, 255 = full).",
+        "To turn off: [0, 0, 0, 0].",
+        "Brightness below ~10 will appear off to the eye."
+      ]
+    }
+  }
+}
