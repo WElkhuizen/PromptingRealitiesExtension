@@ -1,151 +1,67 @@
 {
-  "name": "logic_program",
-  "strict": true,
-  "schema": {
-    "type": "object",
-    "properties": {
-
-      "answer": {
-        "type": "string",
-        "description": "Brief human-readable description of the behaviour you programmed (max 20 words)."
-      },
-
-      "MQTT_value": {
-        "type": "object",
-        "properties": {
-
-          "rules": {
-            "description": "Conditional behaviours. Rules are evaluated in priority order (ascending integer). First matching rule wins.",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label":           { "type": "string" },
-                "priority":        { "type": "integer" },
-                "condition_logic": { "type": "string", "enum": ["AND", "OR"] },
-                "checks": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "input": { "type": "string" },
-                      "op":    { "type": "string", "enum": ["<", ">", "<=", ">=", "==", "!="] },
-                      "value": { "type": "number" }
-                    },
-                    "required": ["input", "op", "value"],
-                    "additionalProperties": false
-                  }
-                },
-                "actions": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "output": { "type": "string" },
-                      "values": { "type": "array", "items": { "type": "number" } }
-                    },
-                    "required": ["output", "values"],
-                    "additionalProperties": false
-                  }
+  "type": "object",
+  "required": ["answer", "MQTT_value"],
+  "properties": {
+    "answer": {
+      "type": "string"
+    },
+    "MQTT_value": {
+      "type": "object",
+      "required": ["rules", "default_actions"],
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "priority", "condition_logic", "checks", "actions"],
+            "properties": {
+              "label":           { "type": "string" },
+              "priority":        { "type": "integer" },
+              "condition_logic": { "type": "string", "enum": ["AND", "OR"] },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["input", "op", "value"],
+                  "properties": {
+                    "input": { "type": "string" },
+                    "op":    { "type": "string", "enum": ["<", ">", "<=", ">=", "==", "!="] },
+                    "value": { "type": "number" }
+                  },
+                  "additionalProperties": false
                 }
               },
-              "required": ["label", "priority", "condition_logic", "checks", "actions"],
-              "additionalProperties": false
-            }
-          },
-
-          "mappings": {
-            "description": "Continuous proportional relationships. On every tick, the input value is linearly mapped onto one channel of an output. output_channel index: led → 0=R 1=G 2=B 3=brightness.",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label":          { "type": "string" },
-                "input":          { "type": "string" },
-                "in_min":         { "type": "number" },
-                "in_max":         { "type": "number" },
-                "output":         { "type": "string" },
-                "out_min":        { "type": "number" },
-                "out_max":        { "type": "number" },
-                "output_channel": { "type": "integer" }
-              },
-              "required": ["label", "input", "in_min", "in_max", "output", "out_min", "out_max", "output_channel"],
-              "additionalProperties": false
-            }
-          },
-
-          "sequences": {
-            "description": "Timed animation sequences. trigger_condition_logic ALWAYS = starts immediately and loops forever. AND/OR = starts when sensor condition is met, replays each time condition is met while no sequence is running. repeat: number of full plays (0 = infinite).",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "label":                   { "type": "string" },
-                "trigger_condition_logic": { "type": "string", "enum": ["AND", "OR", "ALWAYS"] },
-                "trigger_checks": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "input": { "type": "string" },
-                      "op":    { "type": "string", "enum": ["<", ">", "<=", ">=", "==", "!="] },
-                      "value": { "type": "number" }
-                    },
-                    "required": ["input", "op", "value"],
-                    "additionalProperties": false
-                  }
-                },
-                "steps": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "duration": { "type": "number" },
-                      "actions": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "output": { "type": "string" },
-                            "values": { "type": "array", "items": { "type": "number" } }
-                          },
-                          "required": ["output", "values"],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": ["duration", "actions"],
-                    "additionalProperties": false
-                  }
-                },
-                "repeat": { "type": "integer" }
-              },
-              "required": ["label", "trigger_condition_logic", "trigger_checks", "steps", "repeat"],
-              "additionalProperties": false
-            }
-          },
-
-          "default_actions": {
-            "description": "Applied every tick as the baseline state before mappings and rules. Always include this to define what the device does when no rule is active.",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "output": { "type": "string" },
-                "values": { "type": "array", "items": { "type": "number" } }
-              },
-              "required": ["output", "values"],
-              "additionalProperties": false
-            }
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["output", "values"],
+                  "properties": {
+                    "output": { "type": "string" },
+                    "values": { "type": "array", "items": { "type": "number" } }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
           }
-
         },
-        "required": ["rules", "mappings", "sequences", "default_actions"],
-        "additionalProperties": false
-      }
-
-    },
-    "required": ["answer", "MQTT_value"],
-    "additionalProperties": false
-  }
+        "default_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["output", "values"],
+            "properties": {
+              "output": { "type": "string" },
+              "values": { "type": "array", "items": { "type": "number" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
 }
