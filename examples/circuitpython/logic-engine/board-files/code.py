@@ -36,7 +36,9 @@ gc.collect()
 
 inputs = {"touch": 0, "light": 0}
 rules = []
+mappings = []
 default_actions = []
+led_state = [0, 0, 0, 0]   # R, G, B, brightness — updated by mappings
 last_led = None
 last_inputs_print = 0
 
@@ -63,6 +65,20 @@ def apply_actions(actions):
             if len(v) >= 3:
                 set_led(int(v[0]), int(v[1]), int(v[2]), br)
 
+# ── Mappings ──────────────────────────────────────────────────────────
+
+def apply_mappings():
+    for m in mappings:
+        val = inputs.get(m["input"], m["in_min"])
+        in_range = m["in_max"] - m["in_min"]
+        ratio = (val - m["in_min"]) / in_range if in_range != 0 else 0.0
+        ratio = max(0.0, min(1.0, ratio))
+        mapped = int(m["out_min"] + ratio * (m["out_max"] - m["out_min"]))
+        if m["output"] == "led":
+            ch = m.get("output_channel", 3)
+            led_state[ch] = mapped
+    set_led(led_state[0], led_state[1], led_state[2], led_state[3])
+
 # ── Condition evaluation ──────────────────────────────────────────────
 
 def eval_check(input_name, op, thr):
@@ -88,18 +104,23 @@ def rule_matches(rule):
 # ── MQTT message handler ──────────────────────────────────────────────
 
 def on_message(client, topic, message):
-    global rules, default_actions
+    global rules, mappings, default_actions, led_state
     print("Message received:", message[:200])
     try:
         data = json.loads(message)
         gc.collect()
         raw = data.get("rules", [])
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
+        mappings = data.get("mappings", [])
         default_actions = data.get("default_actions", [])
-        print("Program loaded:", len(rules), "rules,", len(default_actions), "defaults")
+        led_state = list(data.get("led_base", [0, 0, 0, 0]))
+        print("Program loaded:", len(rules), "rules,", len(mappings), "mappings")
         for i, r in enumerate(rules):
             print("  rule", i, r.get("label"), r.get("checks"))
-        apply_actions(default_actions)
+        for i, m in enumerate(mappings):
+            print("  mapping", i, m.get("label"))
+        if not mappings:
+            apply_actions(default_actions)
         gc.collect()
     except Exception as e:
         print("Parse error:", e)
@@ -124,7 +145,6 @@ while True:
         inputs["touch"] = 1 if touch_pin.value else 0
         inputs["light"] = light_pin.value
 
-        # Print sensor values every 2 seconds for calibration
         now = time.monotonic()
         if now - last_inputs_print >= 2.0:
             print("touch:", inputs["touch"], "| light:", inputs["light"])
@@ -138,7 +158,10 @@ while True:
                 break
 
         if not matched:
-            apply_actions(default_actions)
+            if mappings:
+                apply_mappings()
+            else:
+                apply_actions(default_actions)
 
     except Exception as e:
         print("Loop error:", e)

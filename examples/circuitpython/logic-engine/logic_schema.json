@@ -7,7 +7,7 @@
     },
     "MQTT_value": {
       "type": "object",
-      "required": ["rules", "default_actions"],
+      "required": ["rules", "mappings", "default_actions"],
       "properties": {
         "rules": {
           "type": "array",
@@ -43,6 +43,24 @@
                   "additionalProperties": false
                 }
               }
+            },
+            "additionalProperties": false
+          }
+        },
+        "mappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "input", "in_min", "in_max", "output", "output_channel", "out_min", "out_max"],
+            "properties": {
+              "label":          { "type": "string" },
+              "input":          { "type": "string" },
+              "in_min":         { "type": "number" },
+              "in_max":         { "type": "number" },
+              "output":         { "type": "string" },
+              "output_channel": { "type": "integer" },
+              "out_min":        { "type": "number" },
+              "out_max":        { "type": "number" }
             },
             "additionalProperties": false
           }
