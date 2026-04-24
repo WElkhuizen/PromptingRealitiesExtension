@@ -4,7 +4,7 @@
 # Wiring:
 #   ChaiNEO NeoPixel LED  →  D7 header on Bitsy Expander
 #   Touch sensor          →  D2 header on Bitsy Expander
-#   Light sensor          →  A1 header on Bitsy Expander
+#   Light sensor          →  A2 header on Bitsy Expander
 
 import gc
 import time
@@ -28,7 +28,7 @@ touch_pin = digitalio.DigitalInOut(board.D2)
 touch_pin.direction = digitalio.Direction.INPUT
 touch_pin.pull = digitalio.Pull.DOWN
 
-light_pin = analogio.AnalogIn(board.A1)
+light_pin = analogio.AnalogIn(board.A2)
 
 gc.collect()
 
