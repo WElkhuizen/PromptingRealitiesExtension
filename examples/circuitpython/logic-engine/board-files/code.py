@@ -43,6 +43,8 @@ last_led = None
 last_inputs_print = 0
 last_sensor_publish = 0
 SENSOR_PUBLISH_INTERVAL = 5.0
+light_min = 65535
+light_max = 0
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -155,15 +157,17 @@ while True:
         inputs["touch"] = 1 if touch_pin.value else 0
         inputs["light"] = light_pin.value
 
+        if inputs["light"] < light_min: light_min = inputs["light"]
+        if inputs["light"] > light_max: light_max = inputs["light"]
+
         now = time.monotonic()
         if now - last_inputs_print >= 2.0:
-            print("touch:", inputs["touch"], "| light:", inputs["light"])
+            print("touch:", inputs["touch"], "| light:", inputs["light"], "| range:", light_min, "-", light_max)
             last_inputs_print = now
 
-        # Publish sensor readings so the LLM can see real values in the webapp
-        # TODO: future calibration mode — track min/max over a window, publish range
+        # Publish observed light range so LLM can calibrate mappings automatically
         if now - last_sensor_publish >= SENSOR_PUBLISH_INTERVAL:
-            msg = '{"light":' + str(inputs["light"]) + ',"touch":' + str(inputs["touch"]) + '}'
+            msg = '{"light_min":' + str(light_min) + ',"light_max":' + str(light_max) + '}'
             mqtt_client.publish(sensor_topic, msg)
             last_sensor_publish = now
 

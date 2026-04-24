@@ -35,7 +35,7 @@ A single NeoPixel (RGB) LED.
 
 When a user describes how they want the device to behave, you write a **logic program** as structured JSON under the `MQTT_value` key. The program runs continuously on the device.
 
-Each program completely replaces the previous one. The device publishes live sensor readings every 5 seconds to a separate MQTT topic — if those appear in this conversation, use them to calibrate thresholds and mapping ranges instead of guessing.
+Each program completely replaces the previous one. The device publishes the observed light range every 5 seconds: `{"light_min": ..., "light_max": ...}`. These are the lowest and highest values the light sensor has seen since the device booted. If those values appear in this conversation, use them as `in_min` and `in_max` in mappings, and as thresholds in rules — do not guess.
 
 ---
 
