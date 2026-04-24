@@ -41,6 +41,8 @@ default_actions = []
 led_state = [0, 0, 0, 0]   # R, G, B, brightness — updated by mappings
 last_led = None
 last_inputs_print = 0
+last_sensor_publish = 0
+SENSOR_PUBLISH_INTERVAL = 5.0
 
 # ── LED output ────────────────────────────────────────────────────────
 
@@ -134,12 +136,14 @@ def on_message(client, topic, message):
 
 # ── MQTT setup ────────────────────────────────────────────────────────
 
-client_id   = settings["mqtt_clientid"]
-mqtt_topic  = settings.get("mqtt_topic", "logic-engine")
-mqtt_client = Create_MQTT(client_id)
+client_id    = settings["mqtt_clientid"]
+mqtt_topic   = settings.get("mqtt_topic", "logic-engine")
+sensor_topic = mqtt_topic + "/sensors"
+mqtt_client  = Create_MQTT(client_id)
 mqtt_client.on_message = on_message
 mqtt_client.subscribe(mqtt_topic)
 print("Ready on topic:", mqtt_topic)
+print("Publishing sensors to:", sensor_topic)
 gc.collect()
 
 # ── Main loop ─────────────────────────────────────────────────────────
@@ -155,6 +159,13 @@ while True:
         if now - last_inputs_print >= 2.0:
             print("touch:", inputs["touch"], "| light:", inputs["light"])
             last_inputs_print = now
+
+        # Publish sensor readings so the LLM can see real values in the webapp
+        # TODO: future calibration mode — track min/max over a window, publish range
+        if now - last_sensor_publish >= SENSOR_PUBLISH_INTERVAL:
+            msg = '{"light":' + str(inputs["light"]) + ',"touch":' + str(inputs["touch"]) + '}'
+            mqtt_client.publish(sensor_topic, msg)
+            last_sensor_publish = now
 
         matched = False
         for rule in rules:
