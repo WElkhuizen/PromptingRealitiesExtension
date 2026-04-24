@@ -45,7 +45,7 @@ light_min = 65535
 light_max = 0
 calibrating = False
 calibration_end = 0
-CALIBRATION_DURATION = 15.0
+CALIBRATION_DURATION = 25.0
 
 # ── LED output ────────────────────────────────────────────────────────
 
