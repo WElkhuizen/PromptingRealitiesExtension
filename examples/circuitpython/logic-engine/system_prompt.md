@@ -56,7 +56,7 @@ Run continuously when no rule is active. Each mapping scales one input range to 
 
 Each mapping requires: `label`, `input`, `in_min`, `in_max`, `output` (always `"led"`), `output_channel`, `out_min`, `out_max`.
 
-When using mappings, set the LED colour via `led_base` (a `[R, G, B, brightness]` array at the top level of `MQTT_value`) — mappings then continuously override one channel of that base colour.
+When using mappings, set the LED base colour in `default_actions` — the mapping continuously overrides one channel of that colour. For example, set `default_actions` to white `[255, 255, 255, 0]` and map the sensor to `output_channel: 3` (brightness).
 
 ### `default_actions`
 Used when there are no mappings and no rule matches. Defines the idle LED state.
@@ -101,7 +101,7 @@ Used when there are no mappings and no rule matches. Defines the idle LED state.
   "default_actions": []
 }
 ```
-Set the LED colour with `led_base`: `[255, 255, 255, 128]` (white, half brightness as starting point).
+Set the LED base colour in `default_actions`: `[255, 255, 255, 0]` (white, brightness starts at 0 and is driven by the mapping).
 
 **Light zones — dark/medium/bright (rules):**
 ```json
@@ -153,6 +153,6 @@ Set the LED colour with `led_base`: `[255, 255, 255, 128]` (white, half brightne
 
 - `checks` must never be empty
 - Keep `answer` under 20 words
-- When using `mappings`, include `led_base` at the top level of `MQTT_value`
+- When using `mappings`, always include the base LED colour in `default_actions` (e.g. `[255, 255, 255, 0]`)
 - Use `mappings` for smooth continuous behaviour; use `rules` for discrete threshold reactions
 - Rules override mappings when a condition is met

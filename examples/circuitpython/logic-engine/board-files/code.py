@@ -113,7 +113,13 @@ def on_message(client, topic, message):
         rules = sorted(raw, key=lambda r: r.get("priority", 99))
         mappings = data.get("mappings", [])
         default_actions = data.get("default_actions", [])
-        led_state = list(data.get("led_base", [0, 0, 0, 0]))
+        # Seed led_state from default_actions so mappings have a base colour to work with
+        led_state = [0, 0, 0, 0]
+        for a in default_actions:
+            if a["output"] in ("led", "led_color"):
+                v = a["values"]
+                for ch in range(min(4, len(v))):
+                    led_state[ch] = int(v[ch])
         print("Program loaded:", len(rules), "rules,", len(mappings), "mappings")
         for i, r in enumerate(rules):
             print("  rule", i, r.get("label"), r.get("checks"))
