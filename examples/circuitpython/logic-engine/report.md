@@ -52,7 +52,7 @@ The web interface was designed to be both functional and aesthetically pleasing,
 ## 5. Connectivity & Protocol (MQTT & WiFi)
 To make the system robust and multi-user friendly, the communication layer was overhauled:
 *   **Unique Identification:** Each Pico is assigned a unique ID. MQTT topics are now structured as `toolkit/{ID}/command` for sending the JSON to the board or `toolkit/{ID}/sensors` for receiving the data of the sensors from the board, ensuring that logic intended for one device doesn't accidentally trigger another on the same network.
-*   **WiFi Portal:** The system now handles the initial connection via a dedicated portal but it has to be openned manually by typing the ip address in a browser after connecting to the "Toolkit_Assistant" network. It seems to be impossible to make a pop-up open because every device (computer or phone) detects that it is not a real wifi.
+*   **WiFi Portal:** The system now handles the initial connection via a dedicated portal but it has to be opened manually by typing the ip address in a browser after connecting to the "Toolkit_Assistant" network. It seems to be impossible to make a pop-up open because every device (computer or phone) detects that it is not a real wifi.
 *   **Persistence:** The UI fetches conversation history from the server on load, allowing the user to refresh the page without losing the current hardware configuration context.
 
 ---
