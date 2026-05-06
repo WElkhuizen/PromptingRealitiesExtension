@@ -17,7 +17,9 @@ from OpenAiClientAssistant import create_new_thread, GPT_response, transcribe_au
 
 broker = settings["broker"]
 port = settings.get("mqtt_port", 1883)
+
 topic = settings["topic"]
+
 mqtt_user = settings["mqtt_user"]
 mqtt_password = settings["mqtt_password"]
 
@@ -42,7 +44,8 @@ noise_floor = ENERGY_THRESHOLD
 
 
 class MQTTClient:
-    def __init__(self):
+    def __init__(self, loop):
+        self.loop = loop
         self.client = mqtt.Client(
             client_id=settings["client_id"],
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
@@ -51,18 +54,32 @@ class MQTTClient:
             self.client.username_pw_set(mqtt_user, password=mqtt_password)
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
+        self.client.on_message = self.on_message
         self.connected = asyncio.Event()
 
     def on_connect(self, client, userdata, flags, reason_code, properties=None):
         code = getattr(reason_code, "value", reason_code)
         if code == 0:
             print("\nConnected to MQTT broker.")
+            self.client.subscribe(topic + "/sensors")
             self.connected.set()
         else:
             print(f"\nMQTT connection failed with code {code}.")
             self.connected.clear()
 
-    def on_disconnect(self, client, userdata, reason_code, properties=None):
+    def on_message(self, client, userdata, message):
+        try:
+            payload = message.payload.decode("utf-8")
+            if payload:
+                print(f"\nBoard -> Assistant - Info received: {payload}")
+                prompt = f"This is an automatic system event, sensors status: {payload}"
+                asyncio.run_coroutine_threadsafe(
+                    process_user_message(prompt, self, dev_mode=dev_mode), self.loop
+                )
+        except Exception as e:
+            print(f"Error processing MQTT message: {e}")
+
+    def on_disconnect(self, client, userdata, flags, reason_code, properties=None):
         code = getattr(reason_code, "value", reason_code)
         if code not in (0, None):
             print(f"\nMQTT disconnected unexpectedly (code {code}).")
@@ -92,7 +109,7 @@ class MQTTClient:
             print("Skipping MQTT publish; not connected.")
             return False
         try:
-            self.client.publish(topic, payload)
+            self.client.publish(topic + "/command", payload)
             print("\n")
             return True
         except Exception as exc:
@@ -283,8 +300,8 @@ async def process_user_message(message: str, mqtt_client, *, dev_mode: bool = Fa
             return
 
     response = await GPT_response(current_thread_id, message)
-    text = response.get("response", "")
-    values = response.get("values", {})
+    text = response.get("answer", "")
+    values = response.get("MQTT_value", {})
 
     print(f"\nAssistant: {text}")
 
@@ -396,7 +413,8 @@ async def main():
         print("Failed to create an assistant thread. Exiting.")
         return
 
-    mqtt_client = MQTTClient()
+    loop = asyncio.get_event_loop()
+    mqtt_client = MQTTClient(loop)
     if not await mqtt_client.connect():
         print("Continuing without MQTT publishing.")
         mqtt_client = None

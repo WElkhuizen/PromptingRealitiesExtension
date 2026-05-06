@@ -117,7 +117,11 @@ async def get_assistant_id() -> Optional[str]:
             request["description"] = _assistant_description
         request["response_format"] = {
             "type": "json_schema",
-            "json_schema": schema,
+            "json_schema": {
+                "name": "assistant_response",
+                "strict": True,
+                "schema": schema
+            }
         }
 
         try:
@@ -154,12 +158,16 @@ async def check_run(thread_id, run_id):
 
             if run.status == "completed":
                 break
-            if run.status == "expired":
-                logging.error("Run expired for thread %s", thread_id)
+            elif run.status == "failed":
+                print(f"\n OPENAI ERROR")
+                print(f"Reason: {run.last_error}\n")
+                break
+            elif run.status in ["expired", "cancelled"]:
+                print(f"OPENAI ERROR: Run status is {run.status}")
                 break
             await asyncio.sleep(3)
         except Exception as exc:
-            logging.error("Error checking run status: %s", exc)
+            print(f"\nError checking run status: {exc}")
             break
 
 
@@ -195,6 +203,7 @@ async def GPT_response(thread_id, prompt):
             return {"response": "No response received", "values": {}}
 
         assistant_message = messages.data[0].content[0].text.value
+
         try:
             return json.loads(assistant_message)
         except json.JSONDecodeError:

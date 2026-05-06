@@ -50,7 +50,6 @@ def _optional_int(name: str, default: int) -> int:
     except ValueError as exc:
         raise RuntimeError(f"Invalid integer for {name}: {value}") from exc
 
-
 settings = {
     "broker": _require("MQTT_BROKER"),
     "topic": _require("MQTT_TOPIC"),
