@@ -88,6 +88,80 @@ As a result, the Pico 2W cannot reliably detect Estimote Stickers in real time, 
 *   **Hardware Agnostic:** The system is no longer tied to a specific project; it can adapt to any Grove-based setup simply by telling the AI what is connected where.
 *   **Stable MQTT:** Live updates work without latency.
 *   **Reliable AI:** The Assistant now understands the physical limitations of the hardware and the logical hierarchy of the engine.
+
+--- 
+
+## 9. Experimental Interaction Tests
+To validate the flexibility and robustness of the Logic Engine, I conducted a series of interaction tests combining different sensors and actuators.
+These tests progressively increased in complexity, moving from simple one-to-one behaviors to multi-device reactive systems.
+
+**Basic Sensor → Actuator Tests**
+These first experiments validated the core communication pipeline between the AI, MQTT, JSON logic generation, and the Pico runtime.
+*   **Distance → Servo Mapping**
+A distance sensor was mapped continuously to a servo angle:
+- 100mm → 0
+- 400mm+ → 180°
+This validated smooth interpolation using the `mappings` system.
+*   **Temperature → Piezo Alert**
+A piezo buzzer played a tone when temperature values exceeded a threshold and stayed silent otherwise.
+This confirmed reliable conditional triggering through `rules`.
+*   **Light Sensor → LED Nightlight**
+A LED automatically turned bright white in dark environments and switched off in bright conditions.
+This experiment revealed the importance of inverted mappings for ambient-light interactions.
+
+**State-Based Color Systems**
+These experiments focused on multi-state logic and color transitions.
+*   **Distance-Based RGB States**
+- `< 100mm` → blinking Red
+- `100–300mm` → solid Orange
+- `> 300mm` → Green
+This validated rule priorities, RGB color handling, blinking behaviors, and threshold-based state transitions.
+*   **Touch Toggle System**
+Each touch toggled a LED between Red and Off.
+This demonstrated persistent state management and event-based interactions.
+
+**Multi-Output Reactive Systems**
+The next experiments combined several actuators simultaneously.
+*   **Distance Alarm System**
+Components: Distance sensor, Two LEDs, Piezo buzzer
+Behavior:
+- If distance `< 200mm`
+    - both LEDs blink Red
+    - piezo emits a repeating low-volume beep every 0.2s
+- Otherwise everything turns off
+This validated synchronized multi-output reactions and timing coordination.
+*   **Distance Theremin**
+Components: Distance sensor, Piezo, LED
+Behavior:
+- Distance controls piezo pitch
+- Distance simultaneously controls LED brightness
+This experiment strongly tested the coexistence of multiple continuous `mappings`.
+
+**Interactive Animations**
+These final tests explored more expressive and aesthetic behaviors.
+*   **Police Car Animation**
+Components: Two LEDs, Touch sensor
+Behavior:
+- LEDs alternate Red/Blue every 0.5s
+- Animation activates only while touching the sensor
+This validated: timed alternation, concurrent output updates, and conditional animation triggering.
+*   **Ambient Light Mood Lamp**
+Components: Two LEDs, Light sensor
+Behavior:
+- In darkness:
+    - one LED slowly fades between Purple and Cyan
+- In brightness:
+    - animation stops
+    - second LED becomes Green
+This experiment combined: environmental sensing, smooth color interpolation, animated transitions, and conditional state overrides.
+
+**Key Observations From Testing**
+These experiments highlighted several important characteristics of the system:
+- The distinction between `rules` and `mappings` is essential for avoiding logical conflicts.
+- Multi-output synchronization becomes increasingly complex when combining timed animations with continuous mappings.
+- The AI performs significantly better when given explicit behavioral constraints and hardware context.
+- Small ambiguities in prompts can lead to major logical errors in generated JSON structures.
+- The Logic Engine is flexible enough to support both functional interactions (alarms, indicators) and expressive interactions (animations, ambient behaviors).
 """
 
 with open("report.md", "w", encoding="utf-8") as f:
